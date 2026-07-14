@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <link rel="icon" href="/favicon.ico"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="keywords" id="meta-keywords" content="">
+    <meta name="description" id="meta-description" content="">
+    <title id="page-title">超级博客</title>
+</head>
+<body>
+<div id="app"></div>
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>
+<style>
+    html, body, #app {
+        padding: 0px;
+        margin: 0px;
+        height: 100%;
+    }
+    /*滚动条显示样式*/
+    ::-webkit-scrollbar-thumb{
+        background-color:#FF6666; /*更改喜欢的十六进制颜色*/
+        height:50px;
+        outline-offset:-2px;
+        outline:2px solid #fff;
+        -webkit-border-radius:4px;
+        border: 2px solid #fff;
+    }
+    /*滚动条大小*/
+    ::-webkit-scrollbar{
+        width:8px;
+        height:8px;
+    }
+    /*滚动框背景样式*/
+    ::-webkit-scrollbar-track-piece{
+        background-color:#fff;
+        -webkit-border-radius:0;
+    }
+</style>
