@@ -284,7 +284,6 @@ const hidetp = () => {
 const conf = computed<ConfigModel>(() => store.getters.getSysConfig || {} as ConfigModel)
 </script>
 <style src="@/assets/style/main.css" scoped></style>
-<style src="@/assets/style/bootstrap.min.css"></style>
 <style scoped>
 /*.circle{*/
 /*color: red;*/

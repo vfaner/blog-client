@@ -1,8 +1,9 @@
 <template>
   <div class="user-content">
     <div class="user-box">
-      <div class="alert alert-info alert-dismissible" id="tipClose" role="alert">
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span>
+      <div v-if="showTip" class="alert alert-info alert-dismissible" role="alert">
+        <button type="button" class="close" aria-label="Close" @click="showTip = false">
+          <span aria-hidden="true">×</span>
         </button>
         <span>提示：文章作品需提交审核通过才能正式发布，请耐心等待。</span>
       </div>
@@ -85,11 +86,13 @@
 
 <script setup lang="ts">
 // @ts-nocheck
+import { ref } from 'vue'
 import TinymceEditor from '@/components/edit/TinymceEditor.vue'
 import useGetArticle from "@/composables/article/userGetArticle";
 import useArticle from "@/composables/article/useArticle";
 const {save,rules} = useArticle();
 const {articleData, cateList,tagList} = useGetArticle();
+const showTip = ref(true)
 const onSubmit = () => {
   articleData.type="0"
   console.log("type="+articleData.type)
@@ -98,16 +101,8 @@ const onSubmit = () => {
 const getContent = (v: string) => {
   console.log(v)
 }
-
-$(function () {
-  $(".close").on('click',function () {
-    alert(1)
-    $("#tipClose").remove()
-  })
-})
 </script>
 
 <style scoped lang="scss">
 </style>
 <style src="@/assets/style/main.css" scoped></style>
-<style src="@/assets/style/bootstrap.min.css"></style>

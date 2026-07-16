@@ -91,4 +91,3 @@ onMounted(()=>{
 }
 </style>
 <style src="@/assets/style/main.css" scoped></style>
-<style src="@/assets/style/bootstrap.min.css"></style>

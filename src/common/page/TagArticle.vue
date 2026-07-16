@@ -157,7 +157,6 @@ watch(() => tagWithArticle.tagName, (name) => {
 }, { immediate: true })
 </script>
 <style src="@/assets/style/main.css" scoped></style>
-<style src="@/assets/style/bootstrap.min.css" scoped></style>
 <style scoped lang="scss">
 .mb-0 {
   display: -webkit-box;

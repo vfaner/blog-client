@@ -148,7 +148,6 @@ import { ElMessage } from "element-plus";
 import useTagArticle from "@/composables/tag/useTagArticle";
 import Comment from "@/common/comment/Comment.vue";
 import DownLoad from "@/common/download/DownLoad.vue";
-import "../../assets/js/bootstrap.min"
 import AsideUi from "@/common/aside/AsideUi.vue";
 import Reward from "@/common/reward/Reward.vue";
 const {searchArticleByTag} = useTagArticle();
@@ -229,4 +228,3 @@ const likedIds = new Set<number>()
 }
 </style>
 <style src="@/assets/style/main.css" scoped></style>
-<style src="@/assets/style/bootstrap.min.css" scoped></style>

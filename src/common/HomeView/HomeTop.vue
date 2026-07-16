@@ -11,9 +11,9 @@
         </div>
       </div>
       <div v-else class="wel">
-        <div class="wel-item has-sub-menu" style="display:flex;align-items:center;gap:8px;cursor:pointer">
-          <img alt="" :src="user.avatar || avatar" class="avatar" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid #409eff">
-          <span style="font-size:14px;color:#333;font-weight:500">{{ user.nickName || user.login_name || user.username }}</span>
+        <div class="wel-item has-sub-menu user-menu">
+          <img alt="" :src="user.avatar || avatar" class="avatar">
+          <span class="username">{{ user.nickName || user.login_name || user.username }}</span>
           <div class="sub-menu">
             <ul>
               <li><a href="/user/center">会员中心</a></li>
@@ -298,6 +298,65 @@ watch(() => route.query.keyword, (newValue, oldValue) => {
 .shadow{
   border-radius: 10px; /* 圆角 */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), 0 6px 20px rgba(0, 0, 0, 0.2); /* 阴影效果 */
+}
+
+/* 头部登录后用户区（头像 + 用户名 + 下拉菜单）排版修正 */
+.wel :deep(.user-menu) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  cursor: pointer;
+  height: 66px;
+  line-height: 1;
+}
+.wel :deep(.user-menu .avatar) {
+  /* 覆盖 main.css 里的 float / margin-top，让头像与文字垂直居中 */
+  float: none;
+  margin: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #409eff;
+  flex-shrink: 0;
+}
+.wel :deep(.user-menu .username) {
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+  white-space: nowrap;
+  line-height: 1;
+}
+/* 下拉列表：加宽 + 靠右对齐 + 文字不换行 */
+.wel :deep(.user-menu .sub-menu) {
+  right: 0;
+  left: auto;
+  min-width: 140px;
+}
+.wel :deep(.user-menu .sub-menu ul) {
+  padding: 6px 0;
+  border-radius: 6px;
+}
+.wel :deep(.user-menu .sub-menu a) {
+  display: block;
+  padding: 10px 20px;
+  line-height: 1.4;
+  white-space: nowrap;
+  text-align: center;
+  color: #333;
+}
+.wel :deep(.user-menu .sub-menu a:hover) {
+  color: #0ae;
+  background-color: #f2f2f4;
+}
+.wel :deep(.user-menu .sub-menu ul::before),
+.wel :deep(.user-menu .sub-menu ul::after) {
+  /* 小三角对齐头像中心（头像宽 36 + gap 8 + 边距 12 = 大约 40 处），随宽度改变；这里放到菜单中间即可 */
+  left: 50%;
+}
+.wel :deep(.user-menu:hover .sub-menu) {
+  top: 56px;
 }
 
 </style>

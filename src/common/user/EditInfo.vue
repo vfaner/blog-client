@@ -1,116 +1,265 @@
 <template>
-  <div class="user-main" style="display: none;">
-  </div>
-  <ul class="user-meta">
-    <form  name="blooger" class="form-horizontal" id="updatefrom" enctype="multipart/form-data">
-      <li><label>用户ID</label>
-        <input type="text" name="userId" id="userId" v-model="user.id" class="form-control" disabled="disabled">
-      </li>
-      <li><label>登录账号</label>
-        <input type="text" name="username" id="username" v-model="user.username" class="form-control" disabled="disabled">
-      </li>
-      <!--              <li><label>账号余额</label>-->
-      <!--                <input type="text" name="money" id="money" value="0.00" class="form-control" disabled="disabled">-->
-      <!--              </li>-->
-      <li><label>个人头像</label>
-        <input type="text" name="avatar" id="avatar" v-model="user.avatar" class="form-control form-xg" disabled="disabled">
-      </li>
-      <li><label>我的昵称</label>
-        <input type="text" name="name" id="name" v-model="user.login_name" class="form-control form-xg" disabled="disabled">
-      </li>
-      <li><label>邮箱号码</label>
-        <input type="email" name="email" id="email" v-model="user.email" class="form-control form-xg" disabled="disabled">
-      </li>
-<!--      <li><label>QQ 号码</label>-->
-<!--        <input type="text" name="qq" id="qq" v-model="user.id" class="form-control form-xg" disabled="disabled">-->
-<!--      </li>-->
-      <div class="hide-ps" style="display: none;">
-        <li><label>新的密码</label>
-          <input type="password" name="newpass" id="newpass" v-model="user.password" class="form-control">
-        </li>
-        <li><label>确认密码</label>
-          <input type="text" name="repeatpass" id="repeatpass" value="" class="form-control">
-          <ul style="display: block;">
-            <li style="display: list-item;">请检查两次输入的密码是否一样.</li>
-          </ul>
-        </li>
+  <div class="edit-info">
+    <div class="page-header">
+      <h3 class="section-title">修改资料</h3>
+    </div>
+
+    <div class="edit-card">
+      <!-- 头像预览 -->
+      <div class="avatar-block">
+        <img :src="form.avatar || defaultAvatar" class="preview-avatar" alt="头像预览">
+        <div class="avatar-tip">头像预览</div>
       </div>
-<!--      <li><label>我的描述</label>-->
-<!--        <textarea placeholder="" rows="2" cols="30" class="form-control form-xg" name="description" id="description" disabled="disabled"></textarea>-->
-<!--      </li>-->
-      <li class="tijiao-token">
-        <div id="contentdiv_c">
-        </div>
-        <input name="token" id="token" value="65ef3c09b2556e6e105c38d9204db892" type="hidden">
-        <span class="xgzl" style="display: inline-block;">修改资料</span>
-        <input type="submit" id="update-submit" class="hide-xg" value="立即提交" style="display: none;margin-right: 5px">
-        <span class="hide-xg qxxg" style="display: none;">取消修改</span>
-      </li>
-    </form>
-  </ul>
+
+      <el-form
+        ref="formRef"
+        :model="form"
+        :rules="rules"
+        label-width="90px"
+        label-position="right"
+        class="edit-form"
+        @submit.prevent
+      >
+        <el-form-item label="用户 ID">
+          <el-input v-model="form.id" disabled />
+        </el-form-item>
+
+        <el-form-item label="登录账号">
+          <el-input v-model="form.username" disabled>
+            <template #prefix><i class="fa fa-user"></i></template>
+          </el-input>
+        </el-form-item>
+
+        <el-form-item label="头像地址" prop="avatar">
+          <el-input v-model="form.avatar" placeholder="请输入头像图片 URL">
+            <template #prefix><i class="fa fa-image"></i></template>
+          </el-input>
+        </el-form-item>
+
+        <el-form-item label="昵称" prop="loginName">
+          <el-input v-model="form.loginName" placeholder="展示在评论、文章列表处">
+            <template #prefix><i class="fa fa-address-card-o"></i></template>
+          </el-input>
+        </el-form-item>
+
+        <el-form-item label="邮箱" prop="email">
+          <el-input v-model="form.email" placeholder="用于接收通知（可选）">
+            <template #prefix><i class="fa fa-envelope-o"></i></template>
+          </el-input>
+        </el-form-item>
+
+        <el-divider content-position="left">修改密码（可选）</el-divider>
+
+        <el-form-item label="新密码" prop="password">
+          <el-input
+            v-model="form.password"
+            type="password"
+            show-password
+            placeholder="留空则不修改"
+          >
+            <template #prefix><i class="fa fa-lock"></i></template>
+          </el-input>
+        </el-form-item>
+
+        <el-form-item label="确认密码" prop="repeat">
+          <el-input
+            v-model="repeat"
+            type="password"
+            show-password
+            placeholder="再次输入新密码"
+          >
+            <template #prefix><i class="fa fa-lock"></i></template>
+          </el-input>
+        </el-form-item>
+
+        <el-form-item>
+          <el-button type="primary" size="large" @click="submit" :loading="submitting">
+            <i class="fa fa-check"></i>&nbsp;保存修改
+          </el-button>
+          <el-button size="large" @click="reset">重置</el-button>
+        </el-form-item>
+      </el-form>
+    </div>
+  </div>
 </template>
+
 <script setup lang="ts">
-// @ts-nocheck
-import avatar from '@/assets/avatar.png'
-import useInstance from "@/hooks/useInstance";
-import { UToast } from 'undraw-ui'
-import useUser from "@/composables/user/useUser";
-import {computed, reactive} from "vue";
-import {EditUserModel, UserInfo} from "@/api/user/userModel";
-import {useStore} from "@/store";
-const {global} = useInstance();
-const store = useStore();
-//菜单数据
-const user: UserInfo = computed(() => {
-  return store.getters.getInfo
-})
-const editUser = reactive<EditUserModel>({
-  id: 0,
-  username: 'undefined',
-  login_name: '游客',
-  avatar: avatar,
-  email: '123456@qq.com'
-})
-const {modifyUser} = useUser()
+import { computed, reactive, ref, watchEffect } from 'vue'
+import { ElMessage, FormInstance, FormRules } from 'element-plus'
+import defaultAvatar from '@/assets/avatar.png'
+import { useStore } from '@/store'
+import { UserInfo, EditUserModel } from '@/api/user/userModel'
+import useUser from '@/composables/user/useUser'
 
-$(function () {
-  $(".xgzl").on('click',function(){
-    $(".form-xg").attr("disabled",false);
-    $(".hide-xg,.hide-ps").show();
-    $(".fasex").hide();
-    $(this).hide();
-  });
-  $(".qxxg").on('click',function(){
-    $(".form-xg").attr("disabled","disabled");
-    $(".hide-xg,.hide-ps").hide();
-    $(".xgzl,.fasex").show();
-  });
+const store = useStore()
+
+const currentUser = computed<UserInfo>(() => store.getters.getInfo || ({} as UserInfo))
+
+const form = reactive<EditUserModel>({
+  id: '',
+  username: '',
+  loginName: '',
+  avatar: '',
+  email: '',
+  password: ''
+})
+const repeat = ref('')
+
+// 用户数据到达后回填表单
+watchEffect(() => {
+  const u = currentUser.value
+  if (!u) return
+  form.id = u.id ?? ''
+  form.username = u.username || ''
+  form.loginName = (u as any).nickName || u.login_name || ''
+  form.avatar = u.avatar || ''
+  form.email = u.email || ''
 })
 
-$(function(){
-  $('#update-submit').on('click',function (){
-    editUser.username = String($("input[name=username]").val()).replace(/(^\s*)|(\s*$)/g, "");
-    editUser.loginName = String($("input[name=name]").val()).replace(/(^\s*)|(\s*$)/g, "");
-    editUser.avatar = String($("input[name=avatar]").val()).replace(/(^\s*)|(\s*$)/g, "");
-    editUser.id = String($("input[name=userId]").val()).replace(/(^\s*)|(\s*$)/g, "");
-    editUser.email = String($("input[name=email]").val()).replace(/(^\s*)|(\s*$)/g, "");
-    //var sex = $("input[name=sex]").val().replace(/(^\s*)|(\s*$)/g, "");
-    // const description = String($("textarea[name=description]").val()).replace(/(^\s*)|(\s*$)/g, "");
-    editUser.password = String($("input[name=newpass]").val()).replace(/(^\s*)|(\s*$)/g, "");
-    const rewp = String($("input[name=repeatpass]").val()).replace(/(^\s*)|(\s*$)/g, "");
-    const params = $('#updatefrom').serialize();
-    console.log(params)
-    if(editUser.password!==rewp){
-      UToast({ message: '密码输入不一致', type: 'error' })
-      // global.$message({message: "密码输入不一致", type: 'error',offset:80})
-      return false;
+const rules: FormRules = {
+  loginName: [
+    { required: true, message: '请输入昵称', trigger: 'blur' },
+    { min: 2, max: 20, message: '昵称长度 2-20 位', trigger: 'blur' }
+  ],
+  email: [
+    { type: 'email', message: '邮箱格式不正确', trigger: 'blur' }
+  ],
+  avatar: [
+    { max: 500, message: '头像地址过长', trigger: 'blur' }
+  ],
+  password: [
+    { min: 5, max: 20, message: '密码长度 5-20 位', trigger: 'blur' }
+  ]
+}
+
+const formRef = ref<FormInstance>()
+const submitting = ref(false)
+
+// 兼容 useUser({getUserList})，这里传空 refresh
+const { modifyUser } = useUser(() => {})
+
+const submit = async () => {
+  if (!formRef.value) return
+  const valid = await formRef.value.validate().catch(() => false)
+  if (!valid) return
+  if (form.password && form.password !== repeat.value) {
+    ElMessage.error('两次输入的密码不一致')
+    return
+  }
+  submitting.value = true
+  try {
+    const payload: EditUserModel = {
+      id: form.id,
+      username: form.username,
+      loginName: form.loginName,
+      avatar: form.avatar,
+      email: form.email
     }
-    modifyUser(editUser)
-    return false;
-  });
-});
-</script>
-<style scoped lang="scss">
-</style>
-<style src="@/assets/style/user.css" scoped></style>
+    if (form.password) payload.password = form.password
+    await modifyUser(payload)
+  } finally {
+    submitting.value = false
+  }
+}
 
+const reset = () => {
+  const u = currentUser.value
+  form.loginName = (u as any).nickName || u.login_name || ''
+  form.avatar = u.avatar || ''
+  form.email = u.email || ''
+  form.password = ''
+  repeat.value = ''
+  formRef.value?.clearValidate()
+}
+</script>
+
+<style scoped lang="scss">
+.edit-info { padding: 4px 0 24px; }
+
+.page-header { margin-bottom: 16px; }
+.section-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: #303133;
+  margin: 0;
+  position: relative;
+  padding-left: 12px;
+}
+.section-title::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 3px; bottom: 3px;
+  width: 4px;
+  background: #C38CFF;
+  border-radius: 2px;
+}
+
+.edit-card {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  padding: 28px 32px;
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 32px;
+  box-shadow: 0 2px 10px rgba(0,0,0,.03);
+}
+
+.avatar-block {
+  text-align: center;
+  padding-top: 6px;
+}
+.preview-avatar {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #f5f5f5;
+  box-shadow: 0 4px 14px rgba(0,0,0,.08);
+}
+.avatar-tip {
+  margin-top: 12px;
+  color: #909399;
+  font-size: 13px;
+}
+
+.edit-form {
+  max-width: 560px;
+}
+.edit-form :deep(.el-form-item) {
+  margin-bottom: 22px;
+}
+.edit-form :deep(.el-input__wrapper) {
+  padding: 4px 12px;
+  border-radius: 6px;
+  box-shadow: 0 0 0 1px #dcdfe6 inset;
+  transition: box-shadow .2s ease;
+}
+.edit-form :deep(.el-input__wrapper:hover) {
+  box-shadow: 0 0 0 1px #c0c4cc inset;
+}
+.edit-form :deep(.el-input__wrapper.is-focus) {
+  box-shadow: 0 0 0 1px #C38CFF inset;
+}
+.edit-form :deep(.el-input.is-disabled .el-input__wrapper) {
+  background: #fafafa;
+}
+.edit-form :deep(.el-input__prefix .fa) {
+  color: #909399;
+  margin-right: 4px;
+}
+
+.edit-form :deep(.el-divider__text) {
+  color: #909399;
+  font-size: 13px;
+  background: #fff;
+}
+
+@media (max-width: 768px) {
+  .edit-card {
+    grid-template-columns: 1fr;
+    padding: 20px;
+  }
+  .avatar-block { padding-bottom: 8px; }
+}
+</style>
