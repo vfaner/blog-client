@@ -4,27 +4,20 @@
       <div class="content-wrap">
         <div class="content">
 
-          <div class="speedbar wow zoomIn animated" style="visibility: visible; animation-name: zoomIn; background-color: #ecf5ff">
-            <a class="tpclose" @click="hidetp"><i class="fa fa-times"></i></a>
-            <div class="toptip" id="callboard">
-              <u-notice-bar
-                  background="#ecf5ff"
-                  color="#409eff"
-                  prefix-icon="dianzan"
-                  suffix-icon="comment"
-                  :data="conf.advisory"
-              ></u-notice-bar>
-<!--              <ul style="font-size: 14px; margin-top: 2px;">-->
-<!--                <li class="bulletin">-->
-<!--                  <a href="./about">-->
-<!--                    超级资源博客</a>-->
-<!--                </li><li class="bulletin">-->
-<!--                  <a href="./about">-->
-<!--                    超级资源博客欢迎你</a>-->
-<!--                </li>-->
-<!--              </ul>-->
+          <div v-if="noticeVisible && conf.advisory" class="notice-bar" :class="{ 'is-marquee': needMarquee }">
+            <div class="notice-icon">
+              <i class="fa fa-bullhorn"></i>
             </div>
-        </div>
+            <div class="notice-track">
+              <div class="notice-scroll">
+                <span class="notice-text">{{ conf.advisory }}</span>
+                <span class="notice-text notice-dup" v-if="needMarquee">{{ conf.advisory }}</span>
+              </div>
+            </div>
+            <button class="notice-close" @click="hidetp" aria-label="关闭公告">
+              <i class="fa fa-times"></i>
+            </button>
+          </div>
         <!--<article class="excerpt-minic excerpt-minic-index wow zoomIn animated" style="display: block; visibility: visible; animation-name: zoomIn;">
           <div class="post-entry-categories">
             <a href="./tag/QQJSON">QQJSON</a>
@@ -84,15 +77,15 @@
         </div>
         <div class="layui-clear" style="clear: both;"></div>
         <!-- 动态卡片区域 -->
-          <template v-for="(card, index) in cards" :key="card.id">
+          <template v-if="cards.length">
             <!-- 第一张卡片：全宽大图布局 -->
-            <div v-if="index === 0" class="catlist cat-container clearfix">
+            <div class="catlist cat-container clearfix">
               <h2 class="home-heading clearfix">
-                <span class="heading-text wow zoomIn animated" style="visibility: visible; animation-name: zoomIn;">{{ card.name }}</span>
-                <a href="javascript:;" @click="cateUnderArticles(card.id)">更多 <i class="fa fa-plus-circle"></i></a>
+                <span class="heading-text wow zoomIn animated" style="visibility: visible; animation-name: zoomIn;">{{ cards[0].name }}</span>
+                <a href="javascript:;" @click="cateUnderArticles(cards[0].id)">更多 <i class="fa fa-plus-circle"></i></a>
               </h2>
               <div class="cms-cat cms-cat-s5">
-                <div class="col col-left" v-for="article in card.articles" :key="article.id">
+                <div class="col col-left" v-for="article in cards[0].articles" :key="article.id">
                   <article class="post type-post status-publish format-standard wow zoomIn animated" style="visibility: visible; animation-name: zoomIn;">
                     <div class="entry-thumb hover-scale">
                       <a href="javascript:;" @click="detail(article.id)"><img :alt="article.title" :src="article.cover ? article.cover : commonImage" class="thumb">{{ article.title }}</a>
@@ -106,33 +99,16 @@
               </div>
             </div>
 
-            <!-- 奇数索引的卡片对：两个半宽列表布局 -->
-            <div v-else-if="index % 2 === 1" class="catlist clr cat-container clearfix">
-              <div class="catlist-0 cat-col-1_2">
-                <div class="cat-container clearfix">
+            <!-- 剩余卡片：2 列 CSS Grid 顺序填充（S 型走向，奇数末尾自动跨两列） -->
+            <div v-if="cards.length > 1" class="cms-grid">
+              <div class="cms-grid-item" v-for="card in cards.slice(1)" :key="card.id">
+                <div class="cat-container">
                   <h2 class="home-heading clearfix">
                     <span class="heading-text wow zoomIn animated" style="visibility: visible; animation-name: zoomIn;">{{ card.name }}</span>
                     <a href="javascript:;" @click="cateUnderArticles(card.id)">更多 <i class="fa fa-plus-circle"></i></a>
                   </h2>
                   <div class="cms-cat cms-cat-s0">
                     <div class="row-small" v-for="article in card.articles" :key="article.id">
-                      <article class="post type-post status-publish format-standard wow zoomIn animated" style="visibility: visible; animation-name: zoomIn;">
-                        <div class="entry-detail">
-                          <h3 class="entry-title"><strong>[{{ article.time }}]</strong><i class=""></i><a href="javascript:;" @click="detail(article.id)">{{ article.title }}</a></h3>
-                        </div>
-                      </article>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="catlist-0 cat-col-1_2" v-if="index + 1 < cards.length">
-                <div class="cat-container clearfix">
-                  <h2 class="home-heading clearfix">
-                    <span class="heading-text wow zoomIn animated" style="visibility: visible; animation-name: zoomIn;">{{ cards[index + 1].name }}</span>
-                    <a href="javascript:;" @click="cateUnderArticles(cards[index + 1].id)">更多 <i class="fa fa-plus-circle"></i></a>
-                  </h2>
-                  <div class="cms-cat cms-cat-s0">
-                    <div class="row-small" v-for="article in cards[index + 1].articles" :key="article.id">
                       <article class="post type-post status-publish format-standard wow zoomIn animated" style="visibility: visible; animation-name: zoomIn;">
                         <div class="entry-detail">
                           <h3 class="entry-title"><strong>[{{ article.time }}]</strong><i class=""></i><a href="javascript:;" @click="detail(article.id)">{{ article.title }}</a></h3>
@@ -295,14 +271,188 @@ const tran = (str: string) => {
 }
 
 const hidetp = () => {
-  const el = document.querySelector('.speedbar') as HTMLElement
-  if (el) el.style.display = 'none'
+  noticeVisible.value = false
+  try { sessionStorage.setItem('notice-dismissed', '1') } catch { /* ignore */ }
 }
 
 const conf = computed<ConfigModel>(() => store.getters.getSysConfig || {} as ConfigModel)
+
+// 公告栏：会话内关闭一次后不再展示；文字长度超过阈值时启用跑马灯
+const noticeVisible = ref(true)
+try {
+  if (sessionStorage.getItem('notice-dismissed') === '1') noticeVisible.value = false
+} catch { /* ignore */ }
+const needMarquee = computed(() => (conf.value?.advisory?.length || 0) > 40)
 </script>
 <style src="@/assets/style/main.css" scoped></style>
 <style scoped lang="scss">
+/* ===== CMS 卡片：2 列 Grid，S 型顺序填充 ===== */
+.cms-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-top: 16px;
+}
+.cms-grid-item {
+  /* 覆盖 main.css 里 .cat-col-1_2 的 float+width+padding 等旧 float 定位 */
+  min-width: 0;
+}
+.cms-grid-item .cat-container {
+  background: #fff;
+  padding: 15px;
+  box-shadow: 0 0 20px rgba(160, 160, 160, .1);
+  border-radius: 5px;
+  margin: 0 !important;
+  float: none !important;
+  width: auto !important;
+  border: none !important;
+}
+/* 奇数尾项：跨两列占满，避免右侧空白 */
+.cms-grid-item:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
+/* 小卡片内文字：还原原 .cat-col-1_2 .row-small 的紧凑样式（14px 单行、日期灰色小字）
+ * 因为把包裹类换成了 .cms-grid-item，老的 h3 字体大小规则不再命中，需重新声明 */
+.cms-grid-item :deep(.row-small > article) {
+  border: none;
+  margin: 0;
+}
+.cms-grid-item :deep(.row-small > article .entry-detail h3) {
+  position: relative;
+  margin: 0;
+  clear: both;
+  font-weight: 400;
+}
+.cms-grid-item :deep(.row-small > article .entry-detail h3 a) {
+  display: block;
+  font-size: 14px;
+  font-weight: 400;
+  height: 36px;
+  line-height: 36px;
+  color: #555;
+  padding-left: 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color .2s ease;
+}
+.cms-grid-item :deep(.row-small > article .entry-detail h3 a:hover) {
+  color: #C38CFF;
+}
+.cms-grid-item :deep(.row-small > article .entry-detail h3 strong) {
+  font-size: 12px;
+  float: right;
+  font-weight: normal;
+  line-height: 36px;
+  padding-left: 15px;
+  color: #999;
+}
+.cms-grid-item :deep(.row-small > article .entry-detail h3 i) {
+  margin-right: 5px;
+  width: 5px;
+  height: 5px;
+  background: #45B6F7;
+  display: inline-block;
+  vertical-align: 3px;
+  position: absolute;
+  top: 16px;
+  left: 0;
+}
+
+@media (max-width: 720px) {
+  .cms-grid { grid-template-columns: 1fr; gap: 12px; }
+  .cms-grid-item:last-child:nth-child(odd) { grid-column: auto; }
+  .cms-grid-item :deep(.row-small > article .entry-detail h3 strong) { display: none; }
+}
+
+/* ===== 首页顶部公告栏 ===== */
+.notice-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 44px;
+  margin: 12px 0 18px;
+  padding: 0 14px;
+  background: linear-gradient(135deg, #ffe7f0 0%, #fff5e0 55%, #e8f4ff 100%);
+  border-radius: 10px;
+  box-shadow: 0 2px 12px rgba(195, 140, 255, .12);
+  border: 1px solid rgba(195, 140, 255, .2);
+  position: relative;
+  overflow: hidden;
+}
+.notice-icon {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .7);
+  color: #ff5e52;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  animation: notice-ring 2.4s ease-in-out infinite;
+}
+@keyframes notice-ring {
+  0%, 100% { transform: rotate(0deg); }
+  10%, 30% { transform: rotate(-14deg); }
+  20%, 40% { transform: rotate(14deg); }
+  50% { transform: rotate(0deg); }
+}
+
+.notice-track {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%);
+}
+.notice-scroll {
+  display: inline-flex;
+  align-items: center;
+  gap: 60px;
+  color: #6b4bb7;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  padding-left: 24px;
+}
+.notice-text.notice-dup { /* 出现即代表启用跑马灯 */ }
+.notice-bar.is-marquee .notice-scroll {
+  animation: notice-marquee 22s linear infinite;
+}
+.notice-bar.is-marquee:hover .notice-scroll { animation-play-state: paused; }
+@keyframes notice-marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.notice-close {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: #909399;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background-color .2s ease, color .2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.notice-close:hover {
+  background: rgba(0, 0, 0, .06);
+  color: #ff5e52;
+}
+
+@media (max-width: 640px) {
+  .notice-bar { margin: 8px 0 12px; padding: 0 8px; gap: 8px; }
+  .notice-scroll { font-size: 13px; gap: 40px; }
+}
+
 /* ===== 首页"最近更新"卡片：现代化 flex 布局 ===== */
 .new-position :deep(.right) {
   padding: 16px 24px 20px;
@@ -316,20 +466,24 @@ const conf = computed<ConfigModel>(() => store.getters.getSysConfig || {} as Con
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 44px;
+  height: 48px;
   border-bottom: 1px solid #f0f0f0;
   padding: 0 4px;
   margin-bottom: 6px;
   text-indent: 0;
   line-height: 1;
-  font-size: 17px;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: 700;
   color: #303133;
   position: relative;
 }
 .new-position :deep(.title .title-text) {
   padding-left: 12px;
   position: relative;
+  font-size: 18px;
+  font-weight: 700;
+  color: #303133;
+  line-height: 1;
 }
 .new-position :deep(.title .title-text::before) {
   content: '';

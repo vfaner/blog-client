@@ -2,17 +2,19 @@
   <footer class="footer">
     <div class="container">
       <div class="fcode">
-        <h6>友情链接:&nbsp;&nbsp;
-          <span v-for="link in linkList.list" :key="link">
-            <span v-if="link.enable">
-              <a :href="link.link" :title="link.description" target="_blank">{{link.name}}</a>&nbsp;&nbsp;
-            </span>
-          </span>
-        </h6>
+        <p class="friend-links">
+          <span class="label">友情链接：</span>
+          <template v-for="link in linkList.list" :key="link.id">
+            <a v-if="link.enable" :href="link.link" :title="link.description" target="_blank" rel="noopener">{{ link.name }}</a>
+          </template>
+        </p>
     </div>
-    <p><a href="./about">关于超级博客</a> © 2020 <a href="">超级博客</a> &nbsp; <a href="" target="_blank" rel="nofllow">豫ICP备18042205号-1</a>
-    <a href="https://huayula.com/sitemap.xml">站点地图</a>
-    &nbsp; <span id="showText"></span></p>
+    <p class="copyright">
+      <a href="./about">关于超级博客</a> © 2020 <a href="">超级博客</a>
+      <a href="" target="_blank" rel="nofllow">豫ICP备18042205号-1</a>
+      <a href="https://huayula.com/sitemap.xml">站点地图</a>
+      <span id="showText"></span>
+    </p>
   </div>
 </footer>
 <div class="m-mask"></div>
@@ -53,3 +55,41 @@ const goTop = () => {
 }
 </script>
 <style src="@/assets/style/main.css" scoped></style>
+<style scoped lang="scss">
+.footer .fcode .friend-links {
+  /* 与下方版权行同尺寸，字号 14px 匹配 main.css 里 .footer p 的默认 */
+  font-size: 14px;
+  font-weight: normal;
+  line-height: 1.8;
+  margin: 0 0 6px;
+  color: #999;
+  text-align: center;
+}
+.footer .fcode .friend-links .label {
+  color: #606266;
+  margin-right: 4px;
+}
+.footer .fcode .friend-links a {
+  color: #999;
+  margin: 0 8px;
+  text-decoration: none;
+  transition: color .2s ease;
+}
+.footer .fcode .friend-links a:hover {
+  color: #C38CFF;
+}
+.footer .copyright {
+  font-size: 14px;
+  color: #999;
+  line-height: 1.8;
+  text-align: center;
+  margin: 0;
+}
+.footer .copyright a {
+  color: #999;
+  margin: 0 4px;
+  text-decoration: none;
+  transition: color .2s ease;
+}
+.footer .copyright a:hover { color: #C38CFF; }
+</style>
