@@ -34,13 +34,30 @@
       <div class="m-navbar-start">
         <i class="fa fa-bars m-icon-nav"></i>
       </div>
-      <div class="search-i">
-        <a href="javascript:;" class="search-show active"><i class="fa fa-search"></i></a>
-      </div>
-      <div class="site-search">
-        <div class="sb-search">
-            <input id="key" @keyup.enter="enters(keyword)" class="sb-search-input" placeholder="输入关键字 Enter键搜索..." type="text" name="keyword" v-model="keyword">
-        </div>
+      <div class="header-search">
+        <button type="button" class="search-toggle" @click="toggleSearch" :aria-expanded="searchOpen">
+          <i class="fa" :class="searchOpen ? 'fa-times' : 'fa-search'"></i>
+        </button>
+        <transition name="search-slide">
+          <div v-if="searchOpen" class="search-panel" @click.self="searchOpen = false">
+            <div class="search-input-wrap">
+              <i class="fa fa-search prefix-icon"></i>
+              <input
+                ref="searchInput"
+                v-model="keyword"
+                @keyup.enter="enters(keyword)"
+                @keyup.esc="searchOpen = false"
+                type="text"
+                placeholder="输入关键字，按 Enter 键搜索…"
+                class="search-input"
+              >
+              <button v-if="keyword" class="clear-btn" @click="keyword = ''" aria-label="清空">
+                <i class="fa fa-times-circle"></i>
+              </button>
+              <button class="submit-btn" @click="enters(keyword)">搜索</button>
+            </div>
+          </div>
+        </transition>
       </div>
     </section>
   </header>
@@ -114,7 +131,7 @@
   </div>
 </template>
 <script lang="ts" setup>
-import {computed, onMounted, ref, watch} from 'vue'
+import {computed, onMounted, ref, nextTick, watch} from 'vue'
 import '@/assets/style/wow.css'
 import '@/assets/style/font-awesome.min.css'
 import logo from '@/assets/images/logo.png'
@@ -137,8 +154,31 @@ const {imgSrc, getImage} = useImage();
 const {regForm,register} = useRegister();
 const keyword = ref("")
 
+// 头部搜索面板
+const searchOpen = ref(false)
+const searchInput = ref<HTMLInputElement | null>(null)
+const toggleSearch = async () => {
+  searchOpen.value = !searchOpen.value
+  if (searchOpen.value) {
+    await nextTick()
+    searchInput.value?.focus()
+  }
+}
+// 点击外部关闭
+onMounted(() => {
+  document.addEventListener('click', (e) => {
+    if (!searchOpen.value) return
+    const target = e.target as HTMLElement
+    if (!target.closest('.header-search')) {
+      searchOpen.value = false
+    }
+  })
+})
+
 const enters = (val: string) => {
-  submit(val)
+  if (!val || !val.trim()) return
+  searchOpen.value = false
+  submit(val.trim())
 }
 const submit = (val: string) => {
   router.push({path:'/articles',query:{keyword:val}})
@@ -151,15 +191,7 @@ onMounted(() => {
   const sign = document.getElementById('sign')
   if (!sign) return
 
-  // 搜索切换
-  document.querySelector('.search-show')?.addEventListener('click', function(this: HTMLElement) {
-    this.querySelector('.fa')?.classList.toggle('fa-remove')
-    body.classList.toggle('search-on')
-    if (body.classList.contains('search-on')) {
-      (document.querySelector('.site-search input') as HTMLInputElement)?.focus()
-      body.classList.remove('m-nav-show')
-    }
-  })
+  // 搜索由 Vue 侧处理（searchOpen ref），不再需要 DOM 事件
 
   // 克隆主导航到移动端
   const siteNav = document.querySelector('.site-navbar')
@@ -195,8 +227,7 @@ onMounted(() => {
   // 移动端导航
   document.querySelector('.m-icon-nav')?.addEventListener('click', () => {
     body.classList.add('m-nav-show'); if (mask) mask.style.display = 'block'
-    body.classList.remove('search-on')
-    document.querySelector('.search-show .fa')?.classList.remove('fa-remove')
+    searchOpen.value = false
   })
 
   // 登录/注册弹窗
@@ -264,27 +295,6 @@ watch(() => route.query.keyword, (newValue, oldValue) => {
   box-shadow: 0 1px 4px rgba(0,0,0,.05);
   border-color: rgba(0,0,0,.08);
 }
-.sb-search-input[data-v-01b8b934] {
-  position: absolute;
-  top: 0;
-  right: 0;
-  outline: 0;
-  background: #fff;
-  width: 80%;
-  height: 0px;
-  margin: 0;
-  z-index: 10;
-  padding: 18px;
-  font-family: inherit;
-  font-size: 12px;
-  color: #8e8e8e;
-  border-radius: 100px;
-  border: 1px solid #999;
-}
-
-.sb-search input::-webkit-input-placeholder {
-  color: #8e8e8e
-}
 .overlay {
   background: #000;
   opacity: .8;
@@ -298,6 +308,136 @@ watch(() => route.query.keyword, (newValue, oldValue) => {
 .shadow{
   border-radius: 10px; /* 圆角 */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2), 0 6px 20px rgba(0, 0, 0, 0.2); /* 阴影效果 */
+}
+
+/* ===== 头部搜索按钮 + 下拉搜索面板 ===== */
+.header-search {
+  position: relative;
+  float: right;
+  display: flex;
+  align-items: center;
+  height: 66px;
+  margin-right: 10px;
+}
+.search-toggle {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  color: #666;
+  cursor: pointer;
+  border-radius: 50%;
+  font-size: 16px;
+  transition: background-color .2s ease, color .2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.search-toggle:hover {
+  background: #f4ecff;
+  color: #C38CFF;
+}
+
+.search-panel {
+  position: absolute;
+  top: calc(100% - 6px);
+  right: 0;
+  z-index: 999;
+  padding: 12px 14px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 28px rgba(0,0,0,.12);
+  border: 1px solid #f0f0f0;
+  width: 380px;
+}
+.search-panel::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  right: 20px;
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  border-top: 1px solid #f0f0f0;
+  border-left: 1px solid #f0f0f0;
+  transform: rotate(45deg);
+}
+
+.search-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 40px;
+  padding-left: 36px;
+  padding-right: 4px;
+  background: #f7f7f9;
+  border-radius: 8px;
+  transition: background-color .2s ease, box-shadow .2s ease;
+}
+.search-input-wrap:focus-within {
+  background: #fff;
+  box-shadow: 0 0 0 2px rgba(195, 140, 255, .25);
+}
+.prefix-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #909399;
+  font-size: 14px;
+  pointer-events: none;
+}
+.search-input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 14px;
+  color: #303133;
+  padding: 0;
+}
+.search-input::placeholder { color: #b6b7c1; }
+
+.clear-btn {
+  border: none;
+  background: transparent;
+  color: #c0c4cc;
+  cursor: pointer;
+  padding: 4px 6px;
+  font-size: 14px;
+  line-height: 1;
+}
+.clear-btn:hover { color: #909399; }
+
+.submit-btn {
+  margin-left: 6px;
+  height: 32px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 6px;
+  background: #C38CFF;
+  color: #fff;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background-color .2s ease;
+}
+.submit-btn:hover { background: #a86ff0; }
+
+/* 下拉过渡 */
+.search-slide-enter-active,
+.search-slide-leave-active {
+  transition: opacity .18s ease, transform .18s ease;
+}
+.search-slide-enter-from,
+.search-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+@media (max-width: 640px) {
+  .search-panel { width: calc(100vw - 24px); right: -8px; }
 }
 
 /* 头部登录后用户区（头像 + 用户名 + 下拉菜单）排版修正 */

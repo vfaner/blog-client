@@ -41,32 +41,26 @@
         <div class="new-position col-lg-12">
           <div class="right phb_other1">
             <div class="title">
-              最近更新
-              <span>
-                <b>
-                  今日已更新
-                  <b style="color:red" v-text="articleShow.today"></b>
-                    个资源 |
-                    <b>
-                      本站共分享了
-                      <b style="color:red" v-text="articleShow.total">
-                    </b>
-                      个资源
-                  </b>
-                </b>
+              <span class="title-text">最近更新</span>
+              <span class="title-meta">
+                今日已更新 <b class="hl">{{ articleShow.today }}</b> 个资源
+                <span class="sep">|</span>
+                本站共分享了 <b class="hl">{{ articleShow.total }}</b> 个资源
               </span>
-              <em>+{{articleShow.today}}</em>
-              <label>共有<b style="color:red" v-text="articleShow.total"></b>个资源</label>
             </div>
             <div class="r-content">
-              <ul class="layui-clear">
-              <li v-for="article in articleShow.list" :key="article.id">
-                <a href="javascript:;"  @click="detail(article.id)"  :style="{color:article.top ? 'red':''}" v-text="article.title"></a>
-                <i class="ad" v-if="article.top" style="color:#f00;">置顶</i>
-                <span v-else v-text="article.time" class="timeToday" :style="{color : article.time === nowTime ? 'red':''}"></span>
-              </li>
+              <ul class="recent-list">
+                <li v-for="article in articleShow.list" :key="article.id">
+                  <a href="javascript:;" @click="detail(article.id)"
+                     :style="{ color: article.top ? '#ff5e52' : '' }"
+                     v-text="article.title"></a>
+                  <i class="ad" v-if="article.top">置顶</i>
+                  <span v-else class="time-tag"
+                        :style="{ color: article.time === nowTime ? '#ff5e52' : '' }"
+                        v-text="article.time"></span>
+                </li>
               </ul>
-              <div class="list-loading">
+              <div class="list-loading" v-if="!articleShow.list || articleShow.list.length === 0">
                 <div class="loadding2">
                   <div class="circ1"></div>
                   <div class="circ2"></div>
@@ -75,10 +69,16 @@
                 </div>
               </div>
             </div>
-            <div class="page layui-clear" :data-nowpage="articleShow.pageNum">
-              <div class="top">上一页</div>
-              <b class="cfx"></b>
-              <div class="bottom">下一页</div>
+            <div class="page-bar" :data-nowpage="articleShow.pageNum">
+              <button class="page-btn" :disabled="currentPage <= 1" @click="prevPage">
+                <i class="fa fa-angle-left"></i> 上一页
+              </button>
+              <div class="page-indicator">
+                第 <b>{{ currentPage }}</b> / {{ totalPages }} 页
+              </div>
+              <button class="page-btn" :disabled="currentPage >= totalPages" @click="nextPage">
+                下一页 <i class="fa fa-angle-right"></i>
+              </button>
             </div>
           </div>
         </div>
@@ -237,7 +237,7 @@ import {ConfigModel} from "@/api/system/SystemModel";
 import {getHomeCardRenderApi} from "@/api/system/system";
 
 const {commonImage} = useCommon();
-const {articleShow} = useArticleIndexShow()
+const {articleShow, listParam, getArticleIndexList} = useArticleIndexShow()
 const router = useRouter();
 const store = useStore();
 
@@ -246,6 +246,24 @@ const detail = (id: number) => {
 }
 const cateUnderArticles = (id: number) => {
   router.push({name: 'category_article', params: {id: String(id)}})
+}
+
+// 最近更新翻页
+const totalPages = computed(() => {
+  const size = articleShow.pageSize || listParam.pageSize || 10
+  const total = articleShow.total || 0
+  return Math.max(1, Math.ceil(total / size))
+})
+const currentPage = computed(() => articleShow.pageNum || listParam.pageNum || 1)
+const prevPage = () => {
+  if (currentPage.value <= 1) return
+  listParam.pageNum = currentPage.value - 1
+  getArticleIndexList()
+}
+const nextPage = () => {
+  if (currentPage.value >= totalPages.value) return
+  listParam.pageNum = currentPage.value + 1
+  getArticleIndexList()
 }
 
 // 动态卡片数据
@@ -284,11 +302,174 @@ const hidetp = () => {
 const conf = computed<ConfigModel>(() => store.getters.getSysConfig || {} as ConfigModel)
 </script>
 <style src="@/assets/style/main.css" scoped></style>
-<style scoped>
-/*.circle{*/
-/*color: red;*/
-/*}*/
-/*.circle::before {*/
-/*  background: #1b54bc;*/
-/*}*/
+<style scoped lang="scss">
+/* ===== 首页"最近更新"卡片：现代化 flex 布局 ===== */
+.new-position :deep(.right) {
+  padding: 16px 24px 20px;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, .04);
+}
+
+/* 卡片顶部标题条 */
+.new-position :deep(.title) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 44px;
+  border-bottom: 1px solid #f0f0f0;
+  padding: 0 4px;
+  margin-bottom: 6px;
+  text-indent: 0;
+  line-height: 1;
+  font-size: 17px;
+  font-weight: 600;
+  color: #303133;
+  position: relative;
+}
+.new-position :deep(.title .title-text) {
+  padding-left: 12px;
+  position: relative;
+}
+.new-position :deep(.title .title-text::before) {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 2px;
+  bottom: 2px;
+  width: 4px;
+  border-radius: 2px;
+  background: #C38CFF;
+}
+.new-position :deep(.title .title-meta) {
+  font-size: 13px;
+  font-weight: normal;
+  color: #909399;
+  float: none;
+  letter-spacing: 0;
+}
+.new-position :deep(.title .title-meta .hl) { color: #ff5e52; font-weight: 600; margin: 0 3px; }
+.new-position :deep(.title .title-meta .sep) { margin: 0 8px; color: #dcdfe6; }
+
+/* 列表区域：两列平均 */
+.new-position :deep(.r-content) { position: relative; }
+.new-position :deep(.recent-list) {
+  list-style: none;
+  padding: 12px 0 4px;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 32px;
+  row-gap: 2px;
+}
+.new-position :deep(.recent-list li) {
+  /* 覆盖 main.css 里 .new-position .r-content ul li 的 float/width/padding */
+  float: none !important;
+  width: auto !important;
+  padding: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 36px;
+  border-bottom: 1px dashed #f4f4f4;
+  overflow: hidden;
+}
+.new-position :deep(.recent-list li a) {
+  /* 覆盖 main.css 里的 float/max-width/text-indent 等 */
+  float: none !important;
+  display: block;
+  flex: 1;
+  min-width: 0;
+  max-width: 100% !important;
+  height: 36px;
+  line-height: 36px;
+  padding-left: 14px;
+  text-indent: 0 !important;
+  font-size: 14px;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  position: relative;
+}
+.new-position :deep(.recent-list li a:before) {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 4px;
+  background: #d0d3d9;
+  border-radius: 50%;
+}
+.new-position :deep(.recent-list li a:hover) { color: #C38CFF; }
+.new-position :deep(.recent-list li a:hover:before) { background: #C38CFF; }
+.new-position :deep(.recent-list li .time-tag) {
+  float: none !important;
+  font-size: 12px;
+  color: #b8b8b8;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.new-position :deep(.recent-list li .ad) {
+  font-style: normal;
+  padding: 1px 6px;
+  border: 1px solid #ff5e52;
+  color: #ff5e52;
+  font-size: 12px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+/* ===== 分页按钮：现代 flex 两栏对齐 ===== */
+.new-position :deep(.page-bar) {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+.new-position :deep(.page-btn) {
+  flex: 1;
+  height: 40px;
+  border: 1px solid #ebeef5;
+  border-radius: 6px;
+  background: #fff;
+  color: #606266;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color .2s ease, color .2s ease, border-color .2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.new-position :deep(.page-btn:hover) {
+  background: #f7f5ff;
+  border-color: #C38CFF;
+  color: #C38CFF;
+}
+.new-position :deep(.page-btn:disabled) {
+  color: #c0c4cc;
+  cursor: not-allowed;
+  background: #fafafa;
+}
+.new-position :deep(.page-indicator) {
+  align-self: center;
+  color: #909399;
+  font-size: 13px;
+  min-width: 90px;
+  text-align: center;
+  white-space: nowrap;
+}
+.new-position :deep(.page-indicator b) {
+  color: #C38CFF;
+  font-weight: 600;
+  margin: 0 2px;
+}
+
+@media (max-width: 768px) {
+  .new-position :deep(.title) { flex-direction: column; align-items: flex-start; height: auto; padding: 10px 4px; gap: 4px; }
+  .new-position :deep(.recent-list) { grid-template-columns: 1fr; column-gap: 0; }
+}
 </style>

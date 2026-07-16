@@ -1695,57 +1695,122 @@ span.muted{padding-left:15px;padding-right:15px}
 /* ============================================================
  * Bootstrap 3 compatibility shim (只保留项目仍在使用的少量 class)
  * 原 bootstrap.min.css 已移除，本节替代其提供最小可用样式
+ *
+ * 原则：本项目自定义 CSS 已经处理了栅格布局，shim 里的 .row/.col-* 只
+ *      提供 block+clearfix，不加破坏性 margin/padding；.input-group
+ *      使用 flex 现代化替代 BS3 的 display:table。
  * ============================================================ */
-.row { display: block; margin-left: -15px; margin-right: -15px; }
+
+/* 只做 block + clearfix，不加负边距（否则会撑破侧栏和首页卡片） */
+.row { display: block; }
 .row::before, .row::after { content: ""; display: table; }
 .row::after { clear: both; }
-.col-lg-12 { position: relative; min-height: 1px; padding-left: 15px; padding-right: 15px; float: left; width: 100%; }
+
+/* 项目里 .col-lg-12 只用在 .new-position 外层，目的只是"占满 100% 宽度" */
+.col-lg-12 { display: block; width: 100%; min-height: 1px; }
 
 .clearfix::before, .clearfix::after { content: ""; display: table; }
 .clearfix::after { clear: both; }
 
-/* Bootstrap 4/5 style utility - 摘要 2 行截断，多处 .note.mb-0 使用 */
+/* layui 遗留的清浮动 class（首页最近更新卡片使用） */
+.layui-clear::before, .layui-clear::after { content: ""; display: table; }
+.layui-clear::after { clear: both; }
+
+/* AsideUi 搜索区外层 <ul class="list-unstyled souul"> */
+.list-unstyled { padding-left: 0; list-style: none; }
+
+/* .btn 基础样式（main.css 原来的 .btn 只有 padding/radius，缺 border/bg，
+ * 加基础样式让 .btn-default 等能正常显示 */
+.btn {
+  display: inline-block;
+  border: 1px solid transparent;
+  background-color: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: center;
+  line-height: 1.42857143;
+  vertical-align: middle;
+  white-space: nowrap;
+  user-select: none;
+}
+.btn-default {
+  background-color: #fff;
+  border-color: #dcdfe6;
+  color: #606266;
+}
+.btn-default:hover { background-color: #f5f7fa; }
+
+/* Bootstrap 4/5 utility：摘要 2 行截断，多处 .note.mb-0 使用 */
 .mb-0 { margin-bottom: 0 !important; }
 
+/* 输入控件 —— 但避免设置 width:100%，让 .input-group 里的 flex:1 生效 */
 .form-control {
   display: block;
   width: 100%;
+  box-sizing: border-box;
   height: 36px;
   padding: 6px 12px;
   font-size: 14px;
   line-height: 1.42857143;
   color: #555;
   background-color: #fff;
-  background-image: none;
-  border: 1px solid #ccc;
+  border: 1px solid #dcdfe6;
   border-radius: 4px;
-  box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+  box-shadow: inset 0 1px 1px rgba(0,0,0,.04);
   transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+  outline: none;
 }
 .form-control:focus {
   border-color: #46bcf9;
-  outline: 0;
-  box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 8px rgba(70,188,249,.4);
+  box-shadow: 0 0 0 3px rgba(70,188,249,.15);
 }
 
-.input-group { position: relative; display: table; border-collapse: separate; width: 100%; }
-.input-group .form-control { position: relative; z-index: 2; float: left; width: 100%; margin-bottom: 0; display: table-cell; }
-.input-group-btn { position: relative; font-size: 0; white-space: nowrap; display: table-cell; width: 1%; vertical-align: middle; }
-.input-group-btn > .btn { position: relative; border-top-left-radius: 0; border-bottom-left-radius: 0; }
-.input-group .form-control:first-child { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+/* 用 flex 替代 BS3 的 display:table，效果更稳、按钮不再溢出 */
+.input-group {
+  display: flex;
+  width: 100%;
+  align-items: stretch;
+}
+.input-group > .form-control {
+  flex: 1 1 auto;
+  width: 1%;
+  min-width: 0;
+  margin: 0;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.input-group-btn {
+  display: flex;
+  align-items: stretch;
+  margin: 0;
+}
+.input-group-btn > .btn {
+  height: 36px;
+  margin: 0;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-left: none;
+}
 
+/* WriteArticle.vue 使用（提交表单最外层） */
 .form-horizontal .form-group { margin-left: -15px; margin-right: -15px; }
 .form-horizontal .control-label { padding-top: 7px; margin-bottom: 0; text-align: right; }
 
+/* WriteArticle.vue 顶部提示条 */
 .alert {
   padding: 12px 15px;
   margin-bottom: 16px;
   border: 1px solid transparent;
   border-radius: 4px;
+  font-size: 14px;
 }
 .alert-info { color: #31708f; background-color: #d9edf7; border-color: #bce8f1; }
 .alert-dismissible { padding-right: 32px; position: relative; }
-.alert-dismissible .close { position: absolute; top: 8px; right: 12px; }
+.alert-dismissible .close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+}
 
 .close {
   float: right;
@@ -1754,10 +1819,10 @@ span.muted{padding-left:15px;padding-right:15px}
   line-height: 1;
   color: #000;
   text-shadow: 0 1px 0 #fff;
-  opacity: .3;
+  opacity: .35;
   background: none;
   border: 0;
   cursor: pointer;
   padding: 0;
 }
-.close:hover { opacity: .6; }
+.close:hover { opacity: .7; }

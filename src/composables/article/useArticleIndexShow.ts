@@ -7,14 +7,14 @@ export default function useArticleIndexShow() {
     //表格数据
     const articleShow = reactive<{list: any[], pageNum: number, pageSize: number, total: number, today: number}>({
         list: [],
-        pageNum: 0,
-        pageSize: 0,
+        pageNum: 1,
+        pageSize: 10,
         total: 0,
         today: 0,
     })
     //表格查询参数
     const listParam = reactive({
-        pageNum: 0,
+        pageNum: 1,
         pageSize: 10
     })
 
@@ -38,6 +38,8 @@ export default function useArticleIndexShow() {
                 articleShow.list = res.data.articleList || []
                 articleShow.total = res.data.total || 0
                 articleShow.today = res.data.todayUpdate || 0
+                articleShow.pageNum = res.data.pageNum || listParam.pageNum
+                articleShow.pageSize = res.data.pageSize || listParam.pageSize
             }
         } catch {
             // 后端不可用，静默处理
