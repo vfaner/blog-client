@@ -13,17 +13,44 @@
     </el-form>
     <!-- 表格 -->
     <el-table :height="tableHeight" :data="userTable.list" border stripe>
-      <el-table-column prop="username" label="用户名"></el-table-column>
-      <el-table-column prop="loginName" label="登录昵称"></el-table-column>
-      <el-table-column label="是否锁定" align="center">
+      <el-table-column label="头像" width="80" align="center">
         <template #default="scope">
-          <p :style="{'color':scope.row.isAccountNonLocked?'red':'green'}" v-text="scope.row.isAccountNonLocked?'锁定':'未锁定'"></p>
+          <el-avatar :size="40" :src="scope.row.avatar || defaultAvatar" />
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" width="300">
+      <el-table-column prop="username" label="用户名" min-width="120"></el-table-column>
+      <el-table-column prop="nickName" label="昵称" min-width="120">
+        <template #default="scope">
+          <span>{{ scope.row.nickName || '-' }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="角色" min-width="180" align="center">
+        <template #default="scope">
+          <template v-if="scope.row.roles && scope.row.roles.length">
+            <el-tag
+              v-for="r in scope.row.roles"
+              :key="r"
+              :type="roleTagType(r)"
+              size="small"
+              style="margin: 2px"
+            >{{ r }}</el-tag>
+          </template>
+          <el-tag v-else-if="scope.row.role" :type="roleTagType(scope.row.role)" size="small">
+            {{ scope.row.role }}
+          </el-tag>
+          <span v-else class="empty-hint">未分配</span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="email" label="邮箱" min-width="180">
+        <template #default="scope">
+          <span v-if="scope.row.email">{{ scope.row.email }}</span>
+          <span v-else class="empty-hint">未绑定</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" align="center" width="300" fixed="right">
         <template #default="scope">
           <el-button type="primary" size="small" :icon="Edit" @click="editBtn(scope.row)">编辑</el-button>
-          <el-button type="primary" size="small" :icon="Setting" @click="assignPermission(scope.row.id,scope.row.name)">
+          <el-button type="primary" size="small" :icon="Setting" @click="assignPermission(scope.row.id,scope.row.username)">
             分配权限
           </el-button>
           <el-button type="danger" size="small" :icon="Delete" @click="deleteBtn(scope.row.id)">删除</el-button>
@@ -43,7 +70,6 @@
   </el-main>
   <!-- 新增、编辑 -->
   <AddUser ref="addUserRef" @save="save"></AddUser>
-  <!--  分配权限弹窗-->
 <!--  <AssignMenu ref="assignMenuRef"></AssignMenu>-->
 </template>
 <script setup lang="ts">
@@ -52,6 +78,7 @@ import {Search, Close, Plus, Delete, Edit, Setting} from '@element-plus/icons-vu
 import useUserTable from '@/composables/user/useUserTable';
 import useUser from "@/composables/user/useUser";
 import AddUser from "./AddUser.vue"
+import defaultAvatar from '@/assets/avatar.png'
 // import AssignMenu from "@/views/system/user/AssignMenu.vue";
 //表格高度
 const tableHeight = ref(0);
@@ -59,6 +86,17 @@ const tableHeight = ref(0);
 const {listParam, getUserList, userTable, sizeChange, currentChange, searchBtn, resetBtn} = useUserTable();
 //新增，编辑，删除，保存，分配权限
 const {addBtn, editBtn, deleteBtn, save, assignPermission, addUserRef, assignMenuRef} = useUser(getUserList);
+
+const roleTagType = (role: string): 'success' | 'primary' | 'info' | 'warning' | 'danger' => {
+  const map: Record<string, 'success' | 'primary' | 'info' | 'warning' | 'danger'> = {
+    root: 'danger',
+    admin: 'danger',
+    author: 'warning',
+    view: 'info',
+  }
+  return map[role] || 'primary'
+}
+
 onMounted(() => {
   nextTick(() => {
     tableHeight.value = window.innerHeight - 220
@@ -66,4 +104,8 @@ onMounted(() => {
 })
 </script>
 <style scoped lang="scss">
+.empty-hint {
+  color: #c0c4cc;
+  font-size: 12px;
+}
 </style>

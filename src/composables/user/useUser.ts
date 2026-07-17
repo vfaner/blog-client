@@ -39,36 +39,28 @@ export default function useUser(getUserList) {
     //保存
     const save = async (param: AddUserModel) => {
         let res: Result;
-        if (param.type == EditType.ADD) {
-            let result = {
-                username: param.username,
-                loginName: param.loginName,
-                password: param.password,
-                isAccountNonExpired: param.isAccountNonExpired,
-                isAccountNonLocked: param.isAccountNonLocked,
-                isCredentialsNonExpired: param.isCredentialsNonExpired,
-                isEnabled: param.isEnabled,
-            } as AddUserModel;
-            res = await addUserApi(result)
-        } else {
-            console.log("编辑"+param)
-            let result = {
-                id: param.id,
-                username: param.username,
-                loginName: param.loginName,
-                isAccountNonExpired: param.isAccountNonExpired,
-                isAccountNonLocked: param.isAccountNonLocked,
-                isCredentialsNonExpired: param.isCredentialsNonExpired,
-                isEnabled: param.isEnabled,
-            } as AddUserModel;
-            res = await editUserApi(result)
+        const payload: any = {
+            username: param.username,
+            nickName: param.nickName,
+            avatar: param.avatar,
+            email: param.email,
+            roleIds: param.roleIds || [],
         }
-        console.log(res.code)
+        // 密码：新增必填；编辑留空则不改
+        if (param.password) payload.password = param.password
+        if (param.type == EditType.ADD) {
+            res = await addUserApi(payload)
+        } else {
+            payload.id = param.id
+            res = await editUserApi(payload)
+        }
         if (res && res.code == StatusCode.Success) {
             //成功提示
             global.$message({message: res.msg, type: 'success'})
             //加载列表
             getUserList();
+        } else if (res) {
+            global.$message({message: res.msg, type: 'error'})
         }
     }
 

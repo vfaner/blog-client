@@ -14,6 +14,10 @@ enum Api {
 export const getRolePageApi = async (param: any) => {
     return await http.get(Api.getPage, param)
 }
+//全部角色
+export const getRoleListApi = async () => {
+    return await http.get(Api.getList, {})
+}
 //新增角色
 export const addRoleApi = async (param: AddRoleModel) => {
     return await http.post(Api.addOrEdit, param)

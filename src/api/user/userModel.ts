@@ -37,12 +37,15 @@ export interface UserInfo {
 export interface AddUserModel {
     id?: number|string;
     username: string;
-    loginName: string;
+    nickName?: string;
+    avatar?: string;
+    email?: string;
     password?: string;
-    isAccountNonExpired: boolean;
-    isAccountNonLocked: boolean;
-    isCredentialsNonExpired: boolean;
-    isEnabled: boolean;
+    roleIds?: number[];
+    isAccountNonExpired?: boolean;
+    isAccountNonLocked?: boolean;
+    isCredentialsNonExpired?: boolean;
+    isEnabled?: boolean;
     type?: string;//区分编辑和新增
 }
 
