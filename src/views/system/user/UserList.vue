@@ -47,12 +47,9 @@
           <span v-else class="empty-hint">未绑定</span>
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" width="300" fixed="right">
+      <el-table-column label="操作" align="center" width="220" fixed="right">
         <template #default="scope">
           <el-button type="primary" size="small" :icon="Edit" @click="editBtn(scope.row)">编辑</el-button>
-          <el-button type="primary" size="small" :icon="Setting" @click="assignPermission(scope.row.id,scope.row.username)">
-            分配权限
-          </el-button>
           <el-button type="danger" size="small" :icon="Delete" @click="deleteBtn(scope.row.id)">删除</el-button>
         </template>
       </el-table-column>
@@ -70,22 +67,20 @@
   </el-main>
   <!-- 新增、编辑 -->
   <AddUser ref="addUserRef" @save="save"></AddUser>
-<!--  <AssignMenu ref="assignMenuRef"></AssignMenu>-->
 </template>
 <script setup lang="ts">
 import {ref, nextTick, onMounted} from 'vue';
-import {Search, Close, Plus, Delete, Edit, Setting} from '@element-plus/icons-vue';
+import {Search, Close, Plus, Delete, Edit} from '@element-plus/icons-vue';
 import useUserTable from '@/composables/user/useUserTable';
 import useUser from "@/composables/user/useUser";
 import AddUser from "./AddUser.vue"
 import defaultAvatar from '@/assets/avatar.png'
-// import AssignMenu from "@/views/system/user/AssignMenu.vue";
 //表格高度
 const tableHeight = ref(0);
 //表格列表
 const {listParam, getUserList, userTable, sizeChange, currentChange, searchBtn, resetBtn} = useUserTable();
-//新增，编辑，删除，保存，分配权限
-const {addBtn, editBtn, deleteBtn, save, assignPermission, addUserRef, assignMenuRef} = useUser(getUserList);
+//新增，编辑，删除，保存
+const {addBtn, editBtn, deleteBtn, save, addUserRef} = useUser(getUserList);
 
 const roleTagType = (role: string): 'success' | 'primary' | 'info' | 'warning' | 'danger' => {
   const map: Record<string, 'success' | 'primary' | 'info' | 'warning' | 'danger'> = {

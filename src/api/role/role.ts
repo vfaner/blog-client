@@ -6,7 +6,7 @@ enum Api {
     getPage = 'rgh/api/role/page-query',
     addOrEdit = 'rgh/api/role',
     delete = 'rgh/api/role',
-    assignTree = 'rgh/api//role/getAssignPermissionTree',
+    assignTree = 'rgh/api/role/getAssignPermissionTree',
     assignSave = 'rgh/api/role/roleAssignSave'
 }
 

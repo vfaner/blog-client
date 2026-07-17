@@ -51,27 +51,28 @@ export default function useAssignMenu(dialog: DialogModel, onShow, onClose) {
         let param = {roleId: roleId, userId: getUserId() || ''}
         getAssignTree(param);
         //设置弹属性
-        dialog.width = 300
-        dialog.height = 420
+        dialog.width = 520
+        dialog.height = 0 // 自适应内容
         dialog.title = '为【' + name + '】分配权限'
         onShow();
     }
     //获取权限树数据
     const getAssignTree = async (param: AssignTreeParam) => {
         let res = await assignTreeApi(param);
-        console.log('树数据加载完成')
-        console.log(res)
+        //兼容后端返回的空对象或直接数组
+        if (!res || !res.data) return
         //设置权限树数据
-        assignTreeData.list = res.data.listmenu
+        assignTreeData.list = res.data.listmenu || []
         //设置角色原来的权限id
-        assignTreeData.assignTreeChecked = res.data.checkList
-        //数据回显，判断角色原来是否已经分配权限，如果有则回显
-        if (assignTreeData.assignTreeChecked.length > 0) {
-            let newArr = [];
-            assignTreeData.assignTreeChecked.forEach((item => {
-                checked(item, assignTreeData.list, newArr)
-            }))
-            assignTreeData.assignTreeChecked = newArr
+        const rawChecked: number[] = res.data.checkList || []
+        //数据回显：只保留叶子节点的 id 交给 el-tree 的 default-checked-keys
+        //（父节点由 el-tree 通过子节点自动推导，避免"父勾则子全勾"的意外行为）
+        if (rawChecked.length > 0) {
+            const leafOnly: any[] = []
+            rawChecked.forEach(item => checked(item, assignTreeData.list, leafOnly))
+            assignTreeData.assignTreeChecked = leafOnly
+        } else {
+            assignTreeData.assignTreeChecked = []
         }
     }
     const checked = (id, data, newArr) => {
